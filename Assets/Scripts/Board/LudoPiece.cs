@@ -38,14 +38,14 @@ public class LudoPiece : MonoBehaviour
         spriteRenderer.sortingLayerName = "PlayerLayer";
     }
 
-    public BoardTile GetLegalMoveForRoll(int roll)
+    public BoardTile GetAvailableMoveForRoll(int roll)
     {
         if (currentTile.Type == TileType.Stage)
-            return getLegalMovesForStagedTiles(roll);
+            return calculateMoveForStageRoll(roll);
         else if (currentTile.Type == TileType.Home)
-            return getLegalMovesForHomeTiles(roll);
+            return calculateMoveForHomeRoll(roll);
         else if (currentTile.Type == TileType.Normal)
-            return getLegalMoveForNormalTiles(roll);
+            return calculateMoveForRoll(roll);
 
 
         throw new System.Exception("GetLegalMovesForRoll failed. LudoPiece.cs");
@@ -61,17 +61,18 @@ public class LudoPiece : MonoBehaviour
         return false;
     }
 
-    private BoardTile getLegalMovesForStagedTiles(int roll)
+    private BoardTile calculateMoveForStageRoll(int roll)
     {
         if (roll != 6) return null;
 
-        BoardTile destinationTile = owner.GetStartingTile();
+        PrivateBoardTiles privateBoardTiles = owner.GetPlayerBoardTiles();
+        BoardTile destinationTile = privateBoardTiles.GetStartingTile();
         if (destinationTile.IsOccupied && destinationTile.CurrentLudo.owner == owner) return null;
 
         return destinationTile;
     }
 
-    private BoardTile getLegalMovesForHomeTiles(int roll)
+    private BoardTile calculateMoveForHomeRoll(int roll)
     {
         // If the unit can already move out of play, skip this, we inform the UI about this in other way.
         if (CanMoveOutOfPlay(roll)) return null;
@@ -80,26 +81,27 @@ public class LudoPiece : MonoBehaviour
         int requiredRoll = currentStage + 1;
         if (roll != requiredRoll)
             return null;
-        BoardTile destinationTile = findHomeDestinationTile(requiredRoll);
+        BoardTile destinationTile = owner.GetPlayerBoardTiles().FindHomeDestinationTile(requiredRoll);
         if (destinationTile.IsOccupied)
             return null;
         return destinationTile;
     }
 
-    private BoardTile getLegalMoveForNormalTiles(int roll)
+    private BoardTile calculateMoveForRoll(int roll)
     {
-        if (currentTile == owner.GetEndPointTile())
-            return getHomeTileIfAvailable(roll);
+        PrivateBoardTiles playerTiles = owner.GetPlayerBoardTiles();
+        if (currentTile == playerTiles.GetEndPointTile())
+            return returnCanClimbToHomeTile(roll);
 
         int destinationTileId = currentTile.GetID() + roll;
-        destinationTileId = validateAndGetTileId(destinationTileId);
-        BoardTile destinationTile = findDestinationTile(destinationTileId);
+        destinationTileId = BoardUtility.CorrectTileIdIfInvalid(destinationTileId);
+        BoardTile destinationTile = BoardUtility.FindDestinationTile(destinationTileId);
 
-        List<BoardTile> tilesBetween = getBoardTilesBetween(currentTile, destinationTile);
-        if (isPathBlocked(tilesBetween))
+        List<BoardTile> tilesBetween = BoardUtility.GetTilesBetween(currentTile, destinationTile);
+        if (BoardUtility.IsPathBlocked(tilesBetween))
             return null;
 
-        if (tilesBetween.Contains(owner.GetEndPointTile()))
+        if (tilesBetween.Contains(playerTiles.GetEndPointTile()))
             return null;
 
 
@@ -112,64 +114,21 @@ public class LudoPiece : MonoBehaviour
     /// </summary>
     /// <param name="roll"></param>
     /// <returns></returns>
-    private BoardTile getHomeTileIfAvailable(int roll)
+    private BoardTile returnCanClimbToHomeTile(int roll)
     {
         if (roll == 1)
-            return findHomeDestinationTile(1);
+            return owner.GetPlayerBoardTiles().FindHomeDestinationTile(1);
         return null;
 
     }
 
-    /// <summary>
-    /// Reset and then set the tile id to the correct one if tile id is over the NormalTileCount
-    /// </summary>>
-    private int validateAndGetTileId(int destinationTileId)
-    {
-        if (destinationTileId >= BoardTile.NormalTileCount)
-        {
-            int difference = destinationTileId - BoardTile.NormalTileCount;
-            destinationTileId = 0 + difference;
-        }
-
-        return destinationTileId;
-    }
-
-    private List<BoardTile> getBoardTilesBetween(BoardTile startTile, BoardTile endTile)
-    {
-        List<BoardTile> tiles = new List<BoardTile>();
-        BoardTile current = findDestinationTile(validateAndGetTileId(startTile.GetID() + 1));
-        while (current != endTile)
-        {
-            tiles.Add(current);
-            current = findDestinationTile(validateAndGetTileId(current.GetID() + 1));
-        }
-
-        return tiles;
-    }
-
-    private bool isPathBlocked(List<BoardTile> tilesToCheck)
-    {
-        return tilesToCheck.Any(i => i.IsOccupied);
-    }
-
-    private BoardTile findDestinationTile(int tileID)
-    {
-        return BoardTile.AllTiles.First(i => i.GetID() == tileID);
-    }
-
-    private BoardTile findHomeDestinationTile(int homeID)
-    {
-        return BoardTile.AllTiles.First(i => i.GetID() == homeID && owner.IsTileOwnerOf(i));
-    }
 
     /// <summary>
     /// Kills the unit and reset it back to staged tile. called when it is "eaten" by other unit.
     /// </summary>
     public void KillAndResetUnit()
     {
-        BoardTile freeStageTile = owner.FindEmptyStageBoardTile();
-        if (freeStageTile == null)
-            throw new ArgumentException("could not find a free stage tile.");
+        BoardTile freeStageTile = owner.GetPlayerBoardTiles().FindEmptyStageBoardTile();
         freeStageTile.AppendLudo(this);
         currentTile = freeStageTile;
         updatePosition();

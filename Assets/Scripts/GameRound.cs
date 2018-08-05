@@ -141,7 +141,7 @@ public class GameRound : MonoBehaviour, IGameInputReceiver
             if (ludo.IsInPlay())
                 legalMoves.Add(
                     new LegalMove(ludo,
-                    ludo.GetLegalMoveForRoll(diceResult),
+                    ludo.GetAvailableMoveForRoll(diceResult),
                     ludo.CanMoveOutOfPlay(diceResult))
                     );
     }

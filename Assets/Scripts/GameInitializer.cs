@@ -17,7 +17,7 @@ public class GameInitializer : MonoBehaviour
     /// This should be set up in the inspector.
     /// </summary>
     [SerializeField]
-    private BoardHomeTiles[] PredefinedTiles;
+    private PrivateBoardTiles[] PredefinedTiles;
     [SerializeField]
     private Sprite ludoSprite;
     [SerializeField]
@@ -61,7 +61,7 @@ public class GameInitializer : MonoBehaviour
         round.StartRound();
     }
 
-    private Player initalizePlayer(int player_id, BoardHomeTiles tiles)
+    private Player initalizePlayer(int player_id, PrivateBoardTiles tiles)
     {
         Player player = new Player(player_id, tiles, ludoColors[player_id]);
         createBoardPiecesForPlayer(player);
@@ -72,7 +72,7 @@ public class GameInitializer : MonoBehaviour
     private void createBoardPiecesForPlayer(Player player)
     {
         LudoPiece[] playerLudos = new LudoPiece[LUDO_PIECIES_PER_PLAYER];
-        BoardHomeTiles homeTiles = getHomeTilesForPlayerId(player.GetPlayerID());
+        PrivateBoardTiles homeTiles = getHomeTilesForPlayerId(player.GetPlayerID());
 
         for (int i = 0; i < LUDO_PIECIES_PER_PLAYER; i++)
         {
@@ -83,12 +83,12 @@ public class GameInitializer : MonoBehaviour
         player.SetupLudoPieces(playerLudos);
     }
 
-    private BoardHomeTiles getHomeTilesForPlayerId(int playerId)
+    private PrivateBoardTiles getHomeTilesForPlayerId(int playerId)
     {
         return PredefinedTiles[playerId];
     }
 
-    private void defineTypeForBoardTiles(BoardHomeTiles tiles)
+    private void defineTypeForBoardTiles(PrivateBoardTiles tiles)
     {
         foreach (BoardTile t in tiles.StagedTiles)
             t.Type = TileType.Stage;

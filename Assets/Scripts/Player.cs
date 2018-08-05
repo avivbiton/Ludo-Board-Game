@@ -15,9 +15,9 @@ public class Player
     /// The predefined staged, home and starting tile.
     /// Each colored player has a different set of tiles data
     /// </summary>
-    private BoardHomeTiles playerBoardTiles;
+    private PrivateBoardTiles playerBoardTiles;
 
-    public Player(int playerID, BoardHomeTiles playerBoardTiles, Color color)
+    public Player(int playerID, PrivateBoardTiles playerBoardTiles, Color color)
     {
         this.playerID = playerID;
         this.playerBoardTiles = playerBoardTiles;
@@ -49,27 +49,12 @@ public class Player
         return false;
     }
 
-    public BoardTile FindEmptyStageBoardTile()
+    public PrivateBoardTiles GetPlayerBoardTiles()
     {
-        return playerBoardTiles.StagedTiles.FirstOrDefault(i => i.Type == TileType.Stage && i.IsOccupied == false);
+        return playerBoardTiles;
     }
 
-    public BoardTile GetStartingTile()
-    {
-        return playerBoardTiles.StartingTile;
-    }
-
-    /// <summary>
-    /// Returns the tile the player is needed to reach in order to enter their home tile
-    /// </summary>
-    /// <returns></returns>
-    public BoardTile GetEndPointTile()
-    {
-        int id = playerBoardTiles.StartingTile.GetID() - 2;
-        return BoardTile.FindTile(TileType.Normal, id);
-    }
-
-    public Color GetColor()
+    public Color GetPlayerColor()
     {
         return boardColor;
     }

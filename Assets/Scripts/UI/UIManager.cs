@@ -32,7 +32,7 @@ public class UIManager : MonoBehaviour {
     private void onStartOfTurn(StartOfTurnEvent data)
     {
         
-        string text = "<#" + ColorUtility.ToHtmlStringRGB(data.player.GetColor()) + ">Player (" + data.player.GetPlayerID() + ")'s Turn ! </color>";
+        string text = "<#" + ColorUtility.ToHtmlStringRGB(data.player.GetPlayerColor()) + ">Player (" + data.player.GetPlayerID() + ")'s Turn ! </color>";
         var component = Instantiate(TextComp, transform);
         component.GetComponent<TextComponent>().textToDisplay = text;
         uiQueue.Enqueue(component);
